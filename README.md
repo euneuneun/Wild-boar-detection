@@ -52,7 +52,8 @@ Pygame 기반 오디오 출력
 저장 정보
 
 3. 시스템 아키텍처
-''' Camera
+```
+Camera
    ↓
 Raspberry Pi
    ↓
@@ -62,103 +63,67 @@ Pig Detection
    ↓
  ┌───────────────┬───────────────┬───────────────┐
  │               │               │               │
-Speaker Alarm   Image Capture   LINE Notify    Firebase Log '''
+Speaker Alarm   Image Capture   LINE Notify    Firebase Log
+```
 
-동작 흐름
-
-카메라로 영상 입력
-
-YOLO 모델로 객체 탐지 수행
-
-멧돼지(pig) 클래스 탐지 여부 확인
-
-멧돼지 탐지 시
-
-경고음 출력
-
-이미지 저장
-
-사용자 알림 전송
-
-Firebase 로그 저장
+#### 동작 흐름
+1. 카메라로 영상 입력
+2. YOLO 모델로 객체 탐지 수행
+3. 멧돼지(pig) 클래스 탐지 여부 확인
+4.멧돼지 탐지 시
+- 경고음 출력
+- 이미지 저장
+- 사용자 알림 전송
+- Firebase 로그 저장
 
 ## 4. 기술 스택
 #### Language
-
-Python
-
-AI / Computer Vision
-
-YOLOv8
-
-OpenCV
-
+- Python
+#### AI / Computer Vision
+- YOLOv8
+- OpenCV
 #### Hardware / Edge Device
-
-Raspberry Pi
-
-USB Camera
-
-Speaker
-
+- Raspberry Pi
+- 라즈베리파이-v2카메라
+- 블루투스 스피커
 #### External Service
-
-Firebase Realtime Database
-
-LINE Notify API
-
-Library
-
-Pygame
-
-Requests
-
+- Firebase Realtime Database
+- LINE Notify API
+#### Library
+- Pygame
+- Requests
 #### Development Environment
-
-Google Colab (모델 학습)
+- Google Colab (모델 학습)
 
 ### 5. 핵심 기술 및 문제 해결
-1️⃣ 데이터셋 직접 구축
+#### 1️⃣ 데이터셋 직접 구축
+- 멧돼지 탐지를 위해 커스텀 데이터셋을 직접 제작하였다.
+- 멧돼지 인형 및 모형을 활용하여 이미지 촬영
+- 다양한 각도에서 데이터 수집
+- 객체 라벨링 수행
+- 이후 Google Colab 환경에서 YOLO 모델을 학습하였다.
 
-멧돼지 탐지를 위해 커스텀 데이터셋을 직접 제작하였다.
-
-멧돼지 인형 및 모형을 활용하여 이미지 촬영
-
-다양한 각도에서 데이터 수집
-
-객체 라벨링 수행
-
-이후 Google Colab 환경에서 YOLO 모델을 학습하였다.
-
-2️⃣ Edge AI 환경 최적화
-
-라즈베리파이는 연산 성능이 제한적이기 때문에
-모든 프레임에 대해 YOLO 추론을 수행하지 않고 0.5초 간격으로 모델을 실행하여 성능을 최적화하였다.
-
+#### 2️⃣ Edge AI 환경 최적화
+- 라즈베리파이는 연산 성능이 제한적이기 때문에
+- 모든 프레임에 대해 YOLO 추론을 수행하지 않고 0.5초 간격으로 모델을 실행하여 성능을 최적화하였다.
+```
 if time.time() - start_time >= 0.5:
     results = model(frame)
-3️⃣ 이벤트 기반 시스템 설계
-
+``` 
+#### 3️⃣ 이벤트 기반 시스템 설계
 멧돼지 탐지 이벤트 발생 시 다음 기능이 동시에 수행되도록 구현하였다.
+- 경고음 출력
+- 이미지 캡처
+- 사용자 알림 전송
+- 탐지 로그 저장
 
-경고음 출력
-
-이미지 캡처
-
-사용자 알림 전송
-
-탐지 로그 저장
-
-4️⃣ 코드 모듈화
-
+#### 4️⃣ 코드 모듈화
 시스템 유지보수성과 확장성을 위해 기능별로 모듈을 분리하였다.
-
+```
 main.py
 camera_utils.py
 speaker_utils.py
 sms_utils.py
 firebase_utils.py
+```
 
-이벤트 유형
-
-탐지 시간
