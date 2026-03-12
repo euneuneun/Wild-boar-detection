@@ -1,0 +1,5 @@
+ultralytics
+opencv-python
+pygame
+requests
+firebase-admin
