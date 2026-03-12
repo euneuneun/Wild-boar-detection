@@ -52,6 +52,7 @@ Pygame 기반 오디오 출력
 저장 정보
 
 3. 시스템 아키텍처
+![Uploading image.png…]()
 ```
 Camera
    ↓
