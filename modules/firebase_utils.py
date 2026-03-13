@@ -2,20 +2,14 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 
-# Firebase 서비스 계정 키
-cred = credentials.Certificate("config/firebase_key.json")
+cred = credentials.Certificate('/home/pi/my_project/config/farmsecurity-4c847-firebase-adminsdk-sm305-6de3134385.json')
 
 
-# Firebase 초기화
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://your-database-url.firebaseio.com/'
+    'databaseURL': 'https://farmsecurity-4c847-default-rtdb.firebaseio.com/'
 })
 
-
 def log_event(event_type, event_time):
-    """
-    이벤트 로그를 Firebase에 저장
-    """
 
     try:
 
@@ -25,9 +19,10 @@ def log_event(event_type, event_time):
             'event_type': event_type,
             'event_time': event_time
         })
-
         print(f"Logged event: {event_type} at {event_time}")
-
     except Exception as e:
 
         print(f"Failed to log event: {e}")
+
+
+log_event('test_event', '2024-06-21 12:00:00')

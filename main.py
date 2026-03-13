@@ -1,45 +1,36 @@
-
 import cv2
 import time
 from ultralytics import YOLO
-
-from modules.firebase_utils import log_event
-from modules.camera_utils import capture_and_save_frame
-from modules.speaker_utils import init_speaker, play_sound, stop_sound
-from modules.sms_utils import send_line_notify, get_current_time
+import os
+import datetime
 
 
-print("System Starting...")
+from firebase_utils import log_event
+from camera_utils import capture_and_save_frame
+from speaker_utils import init_speaker, play_sound, stop_sound
+from sms_utils import send_line_notify, get_current_time
+
+model = YOLO(r'/home/pi/Downloads/best (big).pt')
 
 
-# YOLO 모델 로드
-model = YOLO("models/best.pt")
-
-
-# 카메라 연결
 cap = cv2.VideoCapture(0)
 
 
-# 스피커 초기화
-sound = init_speaker("sound/sound.mp3")
+sound = init_speaker(r'/home/pi/Downloads/sound.mp3')
 
 
-# LINE Notify Token
-line_token = "YOUR_LINE_TOKEN"
+line_token = 'NfxUs3YKqI5PtiEDwI50oLhhVWIgjiIqGHsGkv7XHEj'
 
 
 start_time = time.time()
 results = None
 hog_detected_previous = False
 
-
 while cap.isOpened():
-
     success, frame = cap.read()
 
     if success:
 
-        # 0.5초마다 YOLO 실행 (성능 최적화)
         if time.time() - start_time >= 0.5:
             results = model(frame)
             start_time = time.time()
@@ -47,68 +38,56 @@ while cap.isOpened():
         if results is not None:
 
             annotated_frame = results[0].plot()
-            cv2.imshow("Wild Boar Detection", annotated_frame)
+            cv2.imshow("YOLOv8 Inference", annotated_frame)
 
             try:
 
                 hog_detected = False
-
                 for r in results[0].boxes:
-
                     cls = int(r.cls)
-
-                    if model.names[cls] == "pig":
+                    if model.names[cls] == 'pig':  
                         hog_detected = True
                         break
 
 
-                # 멧돼지 탐지 이벤트
                 if hog_detected and not hog_detected_previous:
-
-                    print("Pig detected")
+                    print('pig detected.')
 
                     detected_time = get_current_time()
-
-                    image_filename = f"detected_{time.strftime('%Y%m%d_%H%M%S')}.jpg"
+                    print(f'detected time: {detected_time}')
+ 
+                    image_filename = f"detected_{time.strftime('%Y%m%d%H%M%S')}.jpg"
 
                     capture_and_save_frame(frame, image_filename)
 
-                    send_line_notify(
-                        line_token,
-                        f"Pig detected\nTime: {detected_time}",
-                        image_filename
-                    )
+                    response_status = send_line_notify(line_token, f"pig detected..\ndetected time: {detected_time}", image_filename)
+                    if response_status == 200:
+                        print('The LINE Notify message has been sent successfully.')
+                    else:
+                        print(f'Failed to send LINE Notify message: {response_status}')
 
-                    log_event("pig_detected", detected_time)
+                    log_event('pig_detected', detected_time)
 
                     play_sound(sound)
-
-                    log_event("noise_emitted", detected_time)
-
+                    log_event('noise_emitted', detected_time)
 
                 elif not hog_detected and hog_detected_previous:
-
-                    print("No pig")
-
-                    stop_sound(sound)
-
+                    print('Its not a pig.')
+                    stop_sound(sound)  
 
                 hog_detected_previous = hog_detected
 
-
             except Exception as e:
 
-                print(f"Error: {e}")
+                print(f'Error: {e}')
+                print('Its not a pig.')
 
 
         key = cv2.waitKey(1)
-
         if key == ord("q"):
             break
-
-        elif key == ord("p"):
-            cv2.waitKey(-1)
-
+        elif key == ord("p"): 
+            cv2.waitKey(-1) 
     else:
         break
 
